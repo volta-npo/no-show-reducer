@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    image: volta-oss/no-show-reducer:local
+    ports:
+      - "4173:8080"
+    env_file:
+      - .env.example
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped

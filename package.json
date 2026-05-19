@@ -10,7 +10,12 @@
     "start": "python3 -m http.server 4173",
     "validate": "npm test",
     "certify": "npm run build && node --test test/v3.test.js",
-    "test:all": "npm test"
+    "test:all": "npm test",
+    "clean": "rm -f src/*.js src/*.js.map src/*.d.ts test/*.js test/*.js.map test/*.d.ts",
+    "ci": "npm ci && npm test && npm run test:backend --if-present",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "docker:build": "docker build -t volta-oss/no-show-reducer:local .",
+    "docker:run": "docker compose up --build"
   },
   "keywords": [
     "ai-automation",
