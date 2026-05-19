@@ -1,0 +1,35 @@
+{
+  "name": "@volta-oss/no-show-reducer",
+  "version": "3.0.0",
+  "private": false,
+  "type": "module",
+  "description": "Reminder and follow-up playbooks for appointment-based local businesses.",
+  "scripts": {
+    "test": "node --test",
+    "start": "python3 -m http.server 4173",
+    "validate": "node --test",
+    "certify": "node --test test/v3.test.js",
+    "test:all": "node --test"
+  },
+  "keywords": [
+    "ai-automation",
+    "digital-equity",
+    "local-first",
+    "oss",
+    "v3-production",
+    "volta"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volta-npo/34-no-show-reducer.git"
+  },
+  "homepage": "https://volta-npo.github.io/34-no-show-reducer/",
+  "bugs": {
+    "url": "https://github.com/volta-npo/34-no-show-reducer/issues"
+  },
+  "author": "Volta OSS Division <volta.npo@gmail.com>",
+  "engines": {
+    "node": ">=20"
+  }
+}
