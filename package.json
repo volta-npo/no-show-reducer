@@ -22,7 +22,7 @@
     "digital-equity",
     "local-first",
     "oss",
-    "v3-production",
+    "release",
     "volta"
   ],
   "license": "MIT",
@@ -34,7 +34,7 @@
   "bugs": {
     "url": "https://github.com/volta-npo/no-show-reducer/issues"
   },
-  "author": "Volta OSS Division <volta.npo@gmail.com>",
+  "author": "Volta Open Source <volta.npo@gmail.com>",
   "engines": {
     "node": ">=20"
   },
