@@ -12,3 +12,17 @@
 ## Primary metric
 
 `appointments protected by reminder workflows`
+
+## SaaS readiness gates
+
+- SaaS console exports account CSV and executive Markdown briefs locally.
+- Account health, activation, playbook readiness, and automation coverage are calculated from workspace state.
+- Every automation remains human-reviewed and mapped to product safety checks.
+
+
+## TypeScript strictness migration
+
+- Keep the current generated-artifact policy intact while new modules add test coverage first.
+- Move newly added SaaS modules toward explicit contracts before flipping repo-wide `strict` to `true`.
+- Prioritize `src/saas-blueprint.ts`, `src/saas-core.ts`, `src/v3-core.ts`, and `src/domain-core.ts` for typed interfaces in the next hardening pass.
+- Run `npm run lint`, `npm run typecheck`, `npm test`, and `npm run certify` before any strictness escalation.

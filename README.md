@@ -108,6 +108,7 @@ This repository is authored in **TypeScript**. The checked-in JavaScript files a
 - Source: `src/**/*.ts` and `test/**/*.ts`
 - Build: `npm run build`
 - Runtime artifacts: `src/**/*.js` for static hosting
+- SaaS product layer: `src/saas-core.ts`, `src/saas-app.ts`, and `docs/SAAS_PRODUCT.md`
 
 ---
 

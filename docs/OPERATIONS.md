@@ -22,3 +22,12 @@ Reminder and follow-up playbooks for appointment-based local businesses.
 ## Privacy and retention
 
 Data is local-first. Export intentionally, store securely, and delete browser state after handoff if working on a shared device.
+
+
+## SaaS operating console
+
+- Use **Load SaaS Sample** to inspect a launch-ready standalone SaaS scenario for this product.
+- Maintain account stage, tier, health, risk, and owner fields locally in the browser workspace.
+- Review the product-specific SaaS blueprint before enabling automations or exporting client-facing artifacts.
+- Export the SaaS Markdown brief for executive review and the accounts CSV for implementation/customer-success tracking.
+- Treat modeled MRR and plan tiers as planning signals only; no billing provider or hosted tenant database is connected by default.
