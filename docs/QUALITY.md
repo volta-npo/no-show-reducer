@@ -26,3 +26,11 @@
 - Move newly added SaaS modules toward explicit contracts before flipping repo-wide `strict` to `true`.
 - Prioritize `src/saas-blueprint.ts`, `src/saas-core.ts`, `src/v3-core.ts`, and `src/domain-core.ts` for typed interfaces in the next hardening pass.
 - Run `npm run lint`, `npm run typecheck`, `npm test`, and `npm run certify` before any strictness escalation.
+
+
+## Expanded SaaS readiness gates
+
+- Validate onboarding completion, role ownership, integration readiness, support queue severity, audit evidence, and expansion readiness before launch.
+- Treat unresolved high-severity support items as launch risk even when account health is high.
+- Verify generated account CSV and operations CSV exports for customer-success handoff.
+- Keep human review and rollback ownership attached to every automation touching client data or public communications.

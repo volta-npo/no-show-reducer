@@ -1,10 +1,9 @@
 import { config } from './config.js';
 import { domain } from './domain.js';
-import { createSaasState, applySaasSample, calculateSaasMetrics, generateSaasArtifacts, buildSaasMarkdown, buildSaasCsv, SAAS_STAGES } from './saas-core.js';
+import { createSaasState, applySaasSample, calculateSaasMetrics, generateSaasArtifacts, buildSaasMarkdown, buildSaasCsv, buildSaasOperationsCsv, SAAS_STAGES } from './saas-core.js';
 const key = `volta-oss:${config.slug}:saas`;
 let state = load();
 function $(selector) { return document.querySelector(selector); }
-function $$(selector) { return [...document.querySelectorAll(selector)]; }
 function esc(value = '') { return String(value).replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char])); }
 function load() { try {
     const raw = localStorage.getItem(key);
@@ -14,17 +13,27 @@ function load() { try {
 catch { } return createSaasState(config, domain); }
 function save() { state.updatedAt = new Date().toISOString(); localStorage.setItem(key, JSON.stringify(state)); }
 function download(name, content, type = 'text/plain') { const blob = new Blob([content], { type }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); URL.revokeObjectURL(url); }
+function card(label, value, detail) { return `<article><strong>${esc(value)}</strong><span>${esc(label)}</span><p>${esc(detail)}</p></article>`; }
+function miniCard(label, item) { return `<article><strong>${esc(label)}</strong><p>${esc(item)}</p></article>`; }
 function installSaas() {
     document.querySelector('.toolbar').insertAdjacentHTML('afterend', `
     <section class="saas-console panel" aria-label="SaaS operating console">
       <div class="saas-head">
-        <div><p class="eyebrow">Standalone SaaS layer</p><h2>${esc(config.title)} Operating Console</h2><p class="muted">Customer pipeline, subscription tiers, implementation playbooks, human-reviewed automations, experiments, and executive artifacts.</p></div>
-        <div class="button-row no-print"><button id="saas-sample" class="secondary">Load SaaS Sample</button><button id="saas-md">Export SaaS Brief</button><button id="saas-csv" class="secondary">Export Accounts CSV</button></div>
+        <div><p class="eyebrow">Standalone SaaS layer</p><h2>${esc(config.title)} Operating Console</h2><p class="muted">Customer pipeline, subscription tiers, onboarding command center, role permissions, integration health, success plans, support queue, governance log, experiments, and executive artifacts.</p></div>
+        <div class="button-row no-print"><button id="saas-sample" class="secondary">Load SaaS Sample</button><button id="saas-md">Export SaaS Brief</button><button id="saas-csv" class="secondary">Export Accounts CSV</button><button id="saas-ops-csv" class="secondary">Export Ops CSV</button></div>
       </div>
       <div id="saas-metrics" class="saas-metrics"></div>
       <div class="saas-grid">
-        <section><h3>Customer accounts</h3><div class="table-wrap"><table class="saas-table"><thead><tr><th>Account</th><th>Stage</th><th>Tier</th><th>Health</th><th>Risk</th><th>Owner</th></tr></thead><tbody id="saas-accounts"></tbody></table></div></section>
+        <section><h3>Customer accounts</h3><div class="table-wrap"><table class="saas-table"><thead><tr><th>Account</th><th>Stage</th><th>Tier</th><th>Health</th><th>Adoption</th><th>Risk</th><th>Owner</th></tr></thead><tbody id="saas-accounts"></tbody></table></div></section>
         <section><h3>Executive artifacts</h3><div id="saas-artifacts" class="artifact-list"></div><h3>Next best actions</h3><ul id="saas-actions" class="warning-list"></ul></section>
+      </div>
+      <div class="saas-grid">
+        <section><h3>Onboarding command center</h3><div id="saas-onboarding" class="saas-cards"></div></section>
+        <section><h3>Role and permission matrix</h3><div id="saas-roles" class="saas-cards"></div></section>
+      </div>
+      <div class="saas-grid">
+        <section><h3>Integration health</h3><div id="saas-integrations" class="saas-cards"></div></section>
+        <section><h3>Success plans and KPIs</h3><div id="saas-success" class="saas-cards"></div></section>
       </div>
       <div class="saas-grid">
         <section><h3>Product-specific SaaS blueprint</h3><div id="saas-blueprint" class="saas-cards"></div></section>
@@ -32,12 +41,14 @@ function installSaas() {
       </div>
       <div class="saas-grid">
         <section><h3>Human-reviewed automations</h3><div id="saas-automations" class="saas-cards"></div></section>
+        <section><h3>Support queue, audit log, and expansion motions</h3><div id="saas-governance" class="saas-cards"></div></section>
       </div>
     </section>`);
     $('#saas-sample').addEventListener('click', () => { if (!confirm('Load SaaS sample data? This overwrites the SaaS console workspace.'))
         return; state = applySaasSample(config, domain); save(); renderSaas(); });
     $('#saas-md').addEventListener('click', () => download(`${config.slug}-saas-brief.md`, buildSaasMarkdown(config, domain, state), 'text/markdown'));
     $('#saas-csv').addEventListener('click', () => download(`${config.slug}-accounts.csv`, buildSaasCsv(state), 'text/csv'));
+    $('#saas-ops-csv').addEventListener('click', () => download(`${config.slug}-ops.csv`, buildSaasOperationsCsv(state), 'text/csv'));
     renderSaas();
 }
 function renderSaas() {
@@ -46,26 +57,48 @@ function renderSaas() {
         ['Launch Score', `${metrics.launchScore}/100`, metrics.launchReady ? 'Ready to package as SaaS' : 'Needs operational evidence'],
         ['Modeled MRR', `$${metrics.totalMrr.toLocaleString()}`, 'Scenario planning, not billing data'],
         ['Activation', `${metrics.activationRate}%`, 'Accounts at validation or later'],
-        ['Automation Coverage', `${metrics.automationCoverage}%`, 'Human-reviewed safety checks']
-    ].map(([label, value, detail]) => `<article><strong>${esc(value)}</strong><span>${esc(label)}</span><p>${esc(detail)}</p></article>`).join('');
+        ['Automation', `${metrics.automationCoverage}%`, 'Human-reviewed safety checks'],
+        ['Onboarding', `${metrics.onboardingCompletion}%`, 'Completed launch milestones'],
+        ['Governance', `${metrics.governanceScore}%`, 'Reviewed audit and rollback evidence'],
+        ['Retention', `${metrics.retentionScore}/100`, 'Health, onboarding, and success-plan blend'],
+        ['Expansion', `${metrics.expansionPotential}/100`, 'Packaged growth motion readiness']
+    ].map(([label, value, detail]) => card(label, value, detail)).join('');
     $('#saas-accounts').innerHTML = (state.accounts || []).map((account) => accountRow(account)).join('');
     $('#saas-artifacts').innerHTML = generateSaasArtifacts(config, domain, state).map((artifact) => `<article class="artifact"><strong>${esc(artifact.title)}</strong><p>${esc(artifact.body)}</p></article>`).join('');
     $('#saas-actions').innerHTML = metrics.nextBestActions.map((action) => `<li>${esc(action)}</li>`).join('');
-    $('#saas-blueprint').innerHTML = [...(state.blueprint?.workflows || []).map((item) => ['Workflow', item]), ...(state.blueprint?.analytics || []).map((item) => ['Metric', item]), ...(state.blueprint?.guards || []).map((item) => ['Guard', item])].map(([label, item]) => `<article><strong>${esc(label)}</strong><p>${esc(item)}</p></article>`).join('');
-    $('#saas-playbooks').innerHTML = (state.playbooks || []).map((playbook) => `<article><strong>${esc(playbook.name)}</strong><span>${esc(playbook.status)} · ${esc(playbook.module)}</span><p>${esc(playbook.automation)}</p><label>Status<select data-saas-playbook="${esc(playbook.id)}">${['draft', 'ready', 'live'].map((status) => `<option value="${status}" ${playbook.status === status ? 'selected' : ''}>${status}</option>`).join('')}</select></label></article>`).join('');
-    $('#saas-automations').innerHTML = (state.automations || []).map((automation) => `<article><strong>${esc(automation.trigger)}</strong><span>${automation.enabled ? 'Enabled' : 'Draft'} · ${esc(automation.risk)} risk</span><p>${esc(automation.action)}</p><label><input data-saas-automation="${esc(automation.id)}" type="checkbox" ${automation.enabled ? 'checked' : ''} /> Enable with human review</label></article>`).join('');
-    bindSaasRows();
+    $('#saas-onboarding').innerHTML = (state.onboarding || []).map((item) => miniCard(`${item.status}: ${item.name}`, `${item.stage} • ${item.owner}${item.blocker ? ` • Blocker: ${item.blocker}` : ''}`)).join('');
+    $('#saas-roles').innerHTML = (state.roleMatrix || []).map((role) => miniCard(role.role, `${role.responsibility}. Permissions: ${(role.permissions || []).join('; ')}`)).join('');
+    $('#saas-integrations').innerHTML = (state.integrationHealth || []).map((item) => miniCard(`${item.status}: ${item.name}`, `${item.owner} • ${item.dataModel} • ${item.risk} risk`)).join('');
+    $('#saas-success').innerHTML = [...(state.successPlans || []).map((plan) => miniCard(plan.signal, `${plan.kpi}: ${plan.baseline} → ${plan.target} (${plan.cadence})`)), ...(state.kpiBoard || []).map((kpi) => miniCard(`KPI: ${kpi.name}`, `Current ${kpi.current}, target ${kpi.target}, trend ${kpi.trend}`))].join('');
+    $('#saas-blueprint').innerHTML = [...(state.blueprint?.workflows || []).map((item) => ['Workflow', item]), ...(state.blueprint?.kpis || state.blueprint?.analytics || []).map((item) => ['KPI', item]), ...(state.blueprint?.guards || []).map((item) => ['Guard', item]), ...(state.blueprint?.expansion || []).map((item) => ['Expansion', item])].map(([label, item]) => miniCard(label, item)).join('');
+    $('#saas-playbooks').innerHTML = (state.playbooks || []).map((playbook) => miniCard(playbook.name, `${playbook.status} • ${playbook.module} • ${playbook.automation} • gate: ${playbook.launchGate}`)).join('');
+    $('#saas-automations').innerHTML = (state.automations || []).map((automation) => miniCard(automation.trigger, `${automation.enabled ? 'Enabled' : 'Draft'} • ${automation.action} • rollback: ${automation.rollback}`)).join('');
+    $('#saas-governance').innerHTML = [...(state.supportQueue || []).map((ticket) => miniCard(`Support: ${ticket.title}`, `${ticket.status} • ${ticket.severity} • ${ticket.owner}`)), ...(state.auditLog || []).map((event) => miniCard(`Audit: ${event.event}`, `${event.status} • ${event.reviewer} • ${event.evidence || 'pending'}`)), ...(state.expansionMotions || []).map((motion) => miniCard(`Expansion: ${motion.name}`, `${motion.package} • ${motion.readiness}/100 • trigger ${motion.trigger}`))].join('');
 }
 function accountRow(account) {
-    return `<tr><td><strong>${esc(account.name)}</strong><br><span class="muted">${esc(account.segment)}</span></td><td><select data-saas-account="stage" data-id="${esc(account.id)}">${SAAS_STAGES.map((stage) => `<option value="${stage}" ${account.stage === stage ? 'selected' : ''}>${stage}</option>`).join('')}</select></td><td><select data-saas-account="tier" data-id="${esc(account.id)}">${['starter', 'growth', 'scale'].map((tier) => `<option value="${tier}" ${account.tier === tier ? 'selected' : ''}>${tier}</option>`).join('')}</select></td><td><input data-saas-account="health" data-id="${esc(account.id)}" type="number" min="0" max="100" value="${esc(account.health)}" /></td><td><select data-saas-account="risk" data-id="${esc(account.id)}">${['low', 'medium', 'high'].map((risk) => `<option value="${risk}" ${account.risk === risk ? 'selected' : ''}>${risk}</option>`).join('')}</select></td><td><input data-saas-account="owner" data-id="${esc(account.id)}" value="${esc(account.owner)}" /></td></tr>`;
+    const options = SAAS_STAGES.map((stage) => `<option value="${stage}" ${account.stage === stage ? 'selected' : ''}>${stage}</option>`).join('');
+    return `<tr data-id="${esc(account.id)}"><td><strong>${esc(account.name)}</strong><br><small>${esc(account.segment)}</small></td><td><select data-field="stage">${options}</select></td><td>${esc(account.tier)}</td><td><input data-field="health" type="number" min="0" max="100" value="${esc(account.health)}"></td><td><input data-field="adoption" type="number" min="0" max="100" value="${esc(account.adoption || 0)}"></td><td>${esc(account.risk)}</td><td>${esc(account.owner)}</td></tr>`;
 }
 function bindSaasRows() {
-    $$('[data-saas-account]').forEach((input) => input.addEventListener('input', (event) => { const account = state.accounts.find((item) => item.id === event.target.dataset.id); if (!account)
-        return; const field = event.target.dataset.saasAccount; account[field] = field === 'health' ? Number(event.target.value) : event.target.value; save(); renderSaas(); }));
-    $$('[data-saas-playbook]').forEach((input) => input.addEventListener('change', (event) => { const playbook = state.playbooks.find((item) => item.id === event.target.dataset.saasPlaybook); if (!playbook)
-        return; playbook.status = event.target.value; save(); renderSaas(); }));
-    $$('[data-saas-automation]').forEach((input) => input.addEventListener('change', (event) => { const automation = state.automations.find((item) => item.id === event.target.dataset.saasAutomation); if (!automation)
-        return; automation.enabled = event.target.checked; automation.humanReview = true; save(); renderSaas(); }));
+    document.addEventListener('change', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement))
+            return;
+        const row = target.closest('tr[data-id]');
+        if (!(row instanceof HTMLTableRowElement) || !target.dataset.field)
+            return;
+        const account = (state.accounts || []).find((item) => item.id === row.dataset.id);
+        if (!account)
+            return;
+        account[target.dataset.field] = target.type === 'number' ? Number(target.value) : target.value;
+        save();
+        renderSaas();
+    });
 }
-installSaas();
+if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', () => { installSaas(); bindSaasRows(); });
+else {
+    installSaas();
+    bindSaasRows();
+}
 //# sourceMappingURL=saas-app.js.map

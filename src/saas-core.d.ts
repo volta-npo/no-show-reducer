@@ -11,12 +11,31 @@ export declare const SAAS_TIERS: Readonly<{
     starter: 1200;
     growth: 3200;
     scale: 6400;
+    enterprise: 9800;
+}>;
+export declare const SAAS_PLAN_LIMITS: Readonly<{
+    starter: 3;
+    growth: 8;
+    scale: 20;
+    enterprise: 50;
 }>;
 export declare function createSaasState(config: any, domain: any, now?: string): {
     version: string;
     createdAt: string;
     updatedAt: string;
     northStar: any;
+    tenancy: {
+        mode: string;
+        dataResidency: string;
+        tenantFields: any;
+        planLimits: Readonly<{
+            starter: 3;
+            growth: 8;
+            scale: 20;
+            enterprise: 50;
+        }>;
+        privacyBoundary: any;
+    };
     accounts: {
         id: string;
         name: any;
@@ -25,40 +44,50 @@ export declare function createSaasState(config: any, domain: any, now?: string):
         stage: string;
         health: number;
         seats: number;
-        owner: string;
+        owner: any;
         renewalDate: string;
         risk: string;
+        adoption: number;
+        expansionFit: number;
+        lastTouch: string;
+        goals: any[];
         notes: string;
     }[];
+    onboarding: any;
+    roleMatrix: any;
+    integrationHealth: any;
+    successPlans: any;
+    supportQueue: any;
+    auditLog: any;
+    expansionMotions: any;
+    kpiBoard: any;
     playbooks: any;
-    automations: {
-        id: string;
-        trigger: string;
-        action: string;
-        metric: string;
-        enabled: boolean;
-        humanReview: boolean;
-        risk: string;
-        lastRun: string;
-    }[];
+    automations: any;
     plans: any;
     blueprint: {
         product: any;
         northStar: any;
         roles: string[];
+        personas: string[];
         integrations: string[];
         analytics: string[];
+        kpis: string[];
         workflows: string[];
+        onboarding: string[];
         guards: string[];
+        expansion: string[];
+        dataModel: string[];
+        successSignals: string[];
         modules: any;
         artifacts: any;
     };
     experiments: {
         id: string;
-        name: string;
+        name: any;
         hypothesis: string;
         status: string;
         target: number;
+        result: string;
     }[];
 };
 export declare function calculateSaasMetrics(config: any, domain: any, state: any): {
@@ -67,6 +96,12 @@ export declare function calculateSaasMetrics(config: any, domain: any, state: an
     activationRate: number;
     automationCoverage: number;
     playbookReadiness: number;
+    onboardingCompletion: number;
+    integrationReadiness: number;
+    successPlanCoverage: number;
+    governanceScore: number;
+    retentionScore: number;
+    expansionPotential: number;
     launchScore: number;
     stageSummary: {
         stage: string;
@@ -82,11 +117,24 @@ export declare function generateSaasArtifacts(config: any, domain: any, state: a
 }[];
 export declare function buildSaasMarkdown(config: any, domain: any, state: any): string;
 export declare function buildSaasCsv(state: any): string;
+export declare function buildSaasOperationsCsv(state: any): string;
 export declare function applySaasSample(config: any, domain: any): {
     version: string;
     createdAt: string;
     updatedAt: string;
     northStar: any;
+    tenancy: {
+        mode: string;
+        dataResidency: string;
+        tenantFields: any;
+        planLimits: Readonly<{
+            starter: 3;
+            growth: 8;
+            scale: 20;
+            enterprise: 50;
+        }>;
+        privacyBoundary: any;
+    };
     accounts: {
         id: string;
         name: any;
@@ -95,39 +143,49 @@ export declare function applySaasSample(config: any, domain: any): {
         stage: string;
         health: number;
         seats: number;
-        owner: string;
+        owner: any;
         renewalDate: string;
         risk: string;
+        adoption: number;
+        expansionFit: number;
+        lastTouch: string;
+        goals: any[];
         notes: string;
     }[];
+    onboarding: any;
+    roleMatrix: any;
+    integrationHealth: any;
+    successPlans: any;
+    supportQueue: any;
+    auditLog: any;
+    expansionMotions: any;
+    kpiBoard: any;
     playbooks: any;
-    automations: {
-        id: string;
-        trigger: string;
-        action: string;
-        metric: string;
-        enabled: boolean;
-        humanReview: boolean;
-        risk: string;
-        lastRun: string;
-    }[];
+    automations: any;
     plans: any;
     blueprint: {
         product: any;
         northStar: any;
         roles: string[];
+        personas: string[];
         integrations: string[];
         analytics: string[];
+        kpis: string[];
         workflows: string[];
+        onboarding: string[];
         guards: string[];
+        expansion: string[];
+        dataModel: string[];
+        successSignals: string[];
         modules: any;
         artifacts: any;
     };
     experiments: {
         id: string;
-        name: string;
+        name: any;
         hypothesis: string;
         status: string;
         target: number;
+        result: string;
     }[];
 };
