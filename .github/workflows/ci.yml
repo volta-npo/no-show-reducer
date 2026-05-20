@@ -26,6 +26,8 @@ jobs:
         run: npm run build
       - name: Typecheck
         run: npm run typecheck
+      - name: Run lint
+        run: npm run lint
       - name: Run TypeScript tests
         run: node --test test/*.test.js
       - name: Run Python backend tests

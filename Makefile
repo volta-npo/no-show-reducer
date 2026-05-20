@@ -1,4 +1,4 @@
-.PHONY: install build typecheck test backend docker-build docker-run clean release-check
+.PHONY: install build lint typecheck test backend docker-build docker-run clean release-check
 
 install:
 	npm ci
@@ -6,6 +6,8 @@ install:
 build:
 	npm run build
 
+lint:
+	npm run lint
 typecheck:
 	npm run typecheck
 
@@ -24,4 +26,4 @@ docker-run:
 clean:
 	npm run clean
 
-release-check: install build test backend
+release-check: install build lint test backend
